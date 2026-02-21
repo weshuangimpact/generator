@@ -11,11 +11,11 @@
     
     <style>
         /* =========================================
-           1. 全域變數與基礎設定 (參考 style.css)
+           1. 全域變數與基礎設定
            ========================================= */
         :root {
             --brand-dark: #202124;
-            --brand-bg: #f8f9fa; /* 微調背景色以區隔卡片 */
+            --brand-bg: #f8f9fa; 
             --card-border: #e0e0e0;
             --main-font: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
         }
@@ -51,7 +51,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            margin-top: auto; /* Push to bottom */
+            margin-top: auto; 
             padding: 15px 0;
             min-height: 85px;
             z-index: 10;
@@ -70,7 +70,7 @@
 
         .generator-container {
             text-align: center;
-            max-width: 900px;
+            max-width: 1000px;
             width: 100%;
         }
 
@@ -87,11 +87,15 @@
             font-size: 1.1rem;
         }
 
-        /* 卡片按鈕區 */
+        /* 卡片按鈕區 (改為3欄) */
         .action-cards {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(3, 1fr);
             gap: 25px;
+        }
+
+        @media (max-width: 992px) {
+            .action-cards { grid-template-columns: 1fr 1fr; }
         }
 
         @media (max-width: 768px) {
@@ -102,7 +106,7 @@
             background: #fff;
             border: 1px solid var(--card-border);
             border-radius: 12px;
-            padding: 40px 30px;
+            padding: 40px 20px;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
@@ -129,6 +133,7 @@
         .card-btn h3 {
             margin: 0;
             font-weight: 700;
+            font-size: 1.3rem;
             color: var(--brand-dark);
         }
 
@@ -207,8 +212,8 @@
                 <div class="card-btn" data-bs-toggle="modal" data-bs-target="#modal-db">
                     <i class="fa-solid fa-database"></i>
                     <div>
-                        <h3>資料庫重建檔 (SQL)</h3>
-                        <span>含 Tables, RLS Policies, Storage Buckets</span>
+                        <h3>資料庫重建 (SQL)</h3>
+                        <span>Tables, RLS, Storage Buckets</span>
                     </div>
                 </div>
 
@@ -216,7 +221,15 @@
                     <i class="fa-solid fa-bolt"></i>
                     <div>
                         <h3>Edge Functions (ZIP)</h3>
-                        <span>含 6 支核心功能與環境變數配置</span>
+                        <span>6 支核心功能打包</span>
+                    </div>
+                </div>
+
+                <div class="card-btn" data-bs-toggle="modal" data-bs-target="#modal-config">
+                    <i class="fa-solid fa-code"></i>
+                    <div>
+                        <h3>前端設定檔 (JS)</h3>
+                        <span>資料庫連線 config.js</span>
                     </div>
                 </div>
             </div>
@@ -272,21 +285,52 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">前端登入網址 (Login URL)</label>
-                        <input type="text" class="form-control" id="ef-login" value="https://weshuangimpact.github.io/ohsms-app/login.html">
+                        <input type="text" class="form-control" id="ef-login" value="https://wesmartai.net/OHACSS_Test/index.html">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">重設密碼網址 (Reset Password URL)</label>
-                        <input type="text" class="form-control" id="ef-reset" value="https://weshuangimpact.github.io/ohsms-app/reset-password.html">
+                        <input type="text" class="form-control" id="ef-reset" value="https://wesmartai.net/OHACSS_Test/reset_password.html">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">評鑑改善網址 (Act URL)</label>
-                        <input type="text" class="form-control" id="ef-act" value="https://weshuangimpact.github.io/ohsms-app/index5.html">
+                        <input type="text" class="form-control" id="ef-act" value="https://wesmartai.net/OHACSS_Test/index5.html">
                     </div>
                     <div id="status-ef" class="status-msg"></div>
                 </div>
                 <div class="modal-footer border-top-0">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
                     <button type="button" class="btn btn-brand w-100" onclick="generateEdgeZip()">生成並下載 ZIP</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-config" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">前端設定檔 (config.js) 生成</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start">
+                    <div class="alert alert-info py-2 small" role="alert">
+                        <i class="fas fa-info-circle me-1"></i>
+                        提示：系統頁面路徑皆採<strong>相對路徑</strong>，因此只需更新新資料庫的連線參數，無須填寫新網域位置。
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Supabase 專案網址 (URL)</label>
+                        <input type="text" class="form-control" id="cfg-url" placeholder="例: https://okvbtpyeenwmkmzkrxkk.supabase.co">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Supabase 公開金鑰 (Anon Key)</label>
+                        <input type="password" class="form-control" id="cfg-anon-key" placeholder="sb_publishable_...">
+                        <div class="form-text">此為前端用金鑰，請至 Project Settings > API 取得 (anon / public)</div>
+                    </div>
+                    <div id="status-cfg" class="status-msg"></div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-brand w-100" onclick="generateConfig()">生成並下載 JS</button>
                 </div>
             </div>
         </div>
@@ -299,7 +343,6 @@
         // 0. 頁面初始化 (時鐘功能)
         // ==========================================
         document.addEventListener('DOMContentLoaded', function() {
-            // 時鐘邏輯
             setInterval(() => {
                 const el = document.getElementById('header-clock');
                 if(el) el.textContent = new Date().toLocaleTimeString('zh-TW', { hour12: false });
@@ -508,16 +551,13 @@ CREATE POLICY "Allow authenticated delete staging" ON storage.objects FOR DELETE
                 return;
             }
 
-            // 清理網址
             let cleanUrl = projectUrlInput.replace(/\/functions\/v1\/verify-storage\/?$/, '');
             if (cleanUrl.endsWith('/')) cleanUrl = cleanUrl.slice(0, -1);
             const fullUrl = `${cleanUrl}/functions/v1/verify-storage`;
 
-            // 替換
             let finalSQL = SQL_TEMPLATE.replace('<<URL_PLACEHOLDER>>', fullUrl)
                                        .replace('<<TOKEN_PLACEHOLDER>>', serviceKey);
 
-            // 下載
             const blob = new Blob([finalSQL], { type: 'text/plain' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
@@ -549,7 +589,6 @@ CREATE POLICY "Allow authenticated delete staging" ON storage.objects FOR DELETE
 
             const zip = new JSZip();
 
-            // 定義檔案內容 (簡化版，確保核心替換變數存在)
             const files = {
                 "reset-password": `import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -676,9 +715,7 @@ Deno.serve(async (req) => {
   try {
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
     const { record_id } = await req.json()
-    // (簡化版邏輯: 檢查檔案是否存在)
     const { data: record } = await supabase.from('service_records').select('attachment_files').eq('id', record_id).single()
-    // ... 驗證邏輯 ...
     const isVerified = true; 
     await supabase.from('service_records').update({ storage_verified: isVerified, last_verification_at: new Date().toISOString() }).eq('id', record_id)
     return new Response(JSON.stringify({ verified: isVerified }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
@@ -697,6 +734,71 @@ Deno.serve(async (req) => {
             link.click();
 
             statusDiv.innerText = "✅ ZIP 檔已下載，請解壓並執行 CLI 部署";
+            statusDiv.className = "status-msg status-success";
+        }
+
+        // ==========================================
+        // 3. Config.js 產生邏輯 (新功能)
+        // ==========================================
+        function generateConfig() {
+            const url = document.getElementById('cfg-url').value.trim();
+            const anonKey = document.getElementById('cfg-anon-key').value.trim();
+            const statusDiv = document.getElementById('status-cfg');
+
+            if (!url || !anonKey) {
+                statusDiv.innerText = "❌ 請完整填寫網址與 Anon Key";
+                statusDiv.className = "status-msg status-error";
+                return;
+            }
+
+            // 清理網址斜線
+            const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+
+            const configContent = `// config.js
+// 目的：集中管理 全站共用設定 (資料庫、品牌資訊、頁面路徑)
+
+const AppConfig = {
+    // 1. 資料庫連線設定 (Supabase)
+    Supabase: {
+        URL: '${cleanUrl}',
+        KEY: '${anonKey}', 
+        BUCKET_NAME: 'staging'
+    },
+
+    // 2. 系統品牌資訊
+    System: {
+        APP_NAME: 'OHACSS 職業健康評鑑與合規支援系統',
+        COMPANY_NAME: '可信智慧整合有限公司',
+        TAX_ID: '42917004',
+        SLOGAN: 'WesmartAI , Making Trust Transparent.'
+    },
+
+    // 3. 核心頁面路徑對照 (相對路徑即可)
+    Paths: {
+        LOGIN: 'index.html',
+        DASHBOARD: 'dashboard.html',
+        RESET_PASSWORD: 'reset_password.html',
+        INDEX: 'index.html'
+    },
+
+    // 4. Storage Keys
+    StorageKeys: {
+        USER_ID: 'currentUserId',
+        USER_ROLE: 'currentUserRole',
+        USER_NAME: 'currentUserName'
+    }
+};
+
+window.AppConfig = AppConfig;
+`;
+
+            const blob = new Blob([configContent], { type: 'text/javascript' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = "config.js";
+            link.click();
+
+            statusDiv.innerText = "✅ config.js 檔已下載，請覆蓋前端對應檔案";
             statusDiv.className = "status-msg status-success";
         }
     </script>
