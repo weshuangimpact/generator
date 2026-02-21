@@ -87,7 +87,7 @@
             font-size: 1.1rem;
         }
 
-        /* 卡片按鈕區 (改為3欄) */
+        /* 卡片按鈕區 (3欄) */
         .action-cards {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -158,6 +158,7 @@
         .form-label {
             font-weight: 600;
             color: var(--brand-dark);
+            margin-bottom: 4px;
         }
 
         .form-text {
@@ -187,6 +188,11 @@
         .status-success { color: #198754; }
         .status-error { color: #dc3545; }
 
+        .modal-body {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
     </style>
 </head>
 <body>
@@ -213,7 +219,7 @@
                     <i class="fa-solid fa-database"></i>
                     <div>
                         <h3>資料庫重建 (SQL)</h3>
-                        <span>Tables, RLS, Storage Buckets</span>
+                        <span>含 Tables, RLS, Storage Buckets</span>
                     </div>
                 </div>
 
@@ -254,12 +260,12 @@
                     <div class="mb-3">
                         <label class="form-label">Supabase 專案網址 (Project URL)</label>
                         <input type="text" class="form-control" id="db-project-url" placeholder="例: https://okvbtpyeenwmkmzkrxkk.supabase.co">
-                        <div class="form-text">用於設定 Webhook 觸發器 (自動補全 functions 路徑)</div>
+                        <div class="form-text">用於設定 Webhook 觸發器 (系統將自動補全 functions 路徑)</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Service Role Key (Secret)</label>
                         <input type="password" class="form-control" id="db-service-key" placeholder="eyJ...">
-                        <div class="form-text">用於觸發器權限驗證 (請至 Project Settings > API 取得)</div>
+                        <div class="form-text">用於觸發器權限驗證 (請至 Project Settings > API 取得 service_role key)</div>
                     </div>
                     <div id="status-db" class="status-msg"></div>
                 </div>
@@ -279,10 +285,40 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-start">
+                    <div class="alert alert-info py-2 mb-3 small" role="alert">
+                        <i class="fas fa-info-circle me-1"></i>
+                        若下方金鑰欄位留空，程式將維持 <code>Deno.env.get</code> 從後台讀取。若填寫則會<strong>直接寫入程式碼</strong>，可解決環境變數讀取失敗問題。
+                    </div>
+
+                    <h6 class="fw-bold border-bottom pb-1 mb-3">核心金鑰 (Secrets)</h6>
+                    <div class="mb-3">
+                        <label class="form-label">Resend API Key</label>
+                        <input type="password" class="form-control" id="ef-resend-key" placeholder="re_...">
+                        <div class="form-text">用於發送郵件。</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Supabase URL</label>
+                        <input type="text" class="form-control" id="ef-sb-url" placeholder="https://....supabase.co">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Supabase Service Role Key</label>
+                        <input type="password" class="form-control" id="ef-sb-key" placeholder="eyJ...">
+                        <div class="form-text">需使用 service_role key 以獲得後端寫入權限。</div>
+                    </div>
+
+                    <h6 class="fw-bold border-bottom pb-1 mb-3 mt-4">信件參數 (Sender info)</h6>
+                    <div class="mb-3">
+                        <label class="form-label">系統寄件者名稱 (Sender Name)</label>
+                        <input type="text" class="form-control" id="ef-sender-name" value="OHACSS 系統通知">
+                        <div class="form-text">顯示在收件匣的寄件人名稱。</div>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">系統寄件者信箱 (Sender Email)</label>
-                        <input type="email" class="form-control" id="ef-sender" placeholder="noreply@wesmartai.net" value="noreply@wesmartai.net">
+                        <input type="email" class="form-control" id="ef-sender-email" placeholder="noreply@wesmartai.net" value="noreply@wesmartai.net">
+                        <div class="form-text">需為 Resend 已驗證之網域。</div>
                     </div>
+
+                    <h6 class="fw-bold border-bottom pb-1 mb-3 mt-4">連結參數 (Links)</h6>
                     <div class="mb-3">
                         <label class="form-label">前端登入網址 (Login URL)</label>
                         <input type="text" class="form-control" id="ef-login" value="https://wesmartai.net/OHACSS_Test/index.html">
@@ -315,8 +351,10 @@
                 <div class="modal-body text-start">
                     <div class="alert alert-info py-2 small" role="alert">
                         <i class="fas fa-info-circle me-1"></i>
-                        提示：系統頁面路徑皆採<strong>相對路徑</strong>，因此只需更新新資料庫的連線參數，無須填寫新網域位置。
+                        提示：系統頁面路徑皆採<strong>相對路徑</strong>，因此只需更新資料庫連線參數與客製化品牌文字。
                     </div>
+                    
+                    <h6 class="mt-3 fw-bold border-bottom pb-1">資料庫連線</h6>
                     <div class="mb-3">
                         <label class="form-label">Supabase 專案網址 (URL)</label>
                         <input type="text" class="form-control" id="cfg-url" placeholder="例: https://okvbtpyeenwmkmzkrxkk.supabase.co">
@@ -326,6 +364,25 @@
                         <input type="password" class="form-control" id="cfg-anon-key" placeholder="sb_publishable_...">
                         <div class="form-text">此為前端用金鑰，請至 Project Settings > API 取得 (anon / public)</div>
                     </div>
+
+                    <h6 class="mt-4 fw-bold border-bottom pb-1">品牌與系統資訊設定</h6>
+                    <div class="mb-3">
+                        <label class="form-label">系統名稱 (App Name)</label>
+                        <input type="text" class="form-control" id="cfg-app-name" value="OHACSS 職業健康評鑑與合規支援系統">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">公司名稱 (Company Name)</label>
+                        <input type="text" class="form-control" id="cfg-company-name" value="可信智慧整合有限公司">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">統一編號 (Tax ID)</label>
+                        <input type="text" class="form-control" id="cfg-tax-id" value="42917004">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">品牌標語 (Slogan)</label>
+                        <input type="text" class="form-control" id="cfg-slogan" value="WesmartAI , Making Trust Transparent.">
+                    </div>
+
                     <div id="status-cfg" class="status-msg"></div>
                 </div>
                 <div class="modal-footer border-top-0">
@@ -338,29 +395,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        // ==========================================
-        // 0. 頁面初始化 (時鐘功能)
-        // ==========================================
-        document.addEventListener('DOMContentLoaded', function() {
-            setInterval(() => {
-                const el = document.getElementById('header-clock');
-                if(el) el.textContent = new Date().toLocaleTimeString('zh-TW', { hour12: false });
-            }, 1000);
-            
-            const dateEl = document.getElementById('header-date');
-            if(dateEl) {
-                const now = new Date();
-                const days = ['日', '一', '二', '三', '四', '五', '六'];
-                const formattedDate = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}(${days[now.getDay()]})`;
-                dateEl.innerHTML = `<i class="far fa-calendar-alt me-1"></i>今日是 ${formattedDate}`;
-            }
-        });
-
-        // ==========================================
-        // 1. 資料庫 SQL 生成邏輯 (包含 RLS 修正)
-        // ==========================================
-        const SQL_TEMPLATE = `
+    <script type="text/plain" id="tpl-sql">
 -- ==============================================================================
 -- 第一部分：建立資料庫基礎結構 (Functions, Tables, Triggers, RLS)
 -- ==============================================================================
@@ -466,9 +501,9 @@ create index IF not exists idx_service_records_consultant on public.service_reco
 create trigger "auto-verify-files"
 after INSERT or update on service_records for EACH row
 execute FUNCTION supabase_functions.http_request (
-  '<<URL_PLACEHOLDER>>',
+  '[[URL_PLACEHOLDER]]',
   'POST',
-  '{"Content-type":"application/json","Authorization":"Bearer <<TOKEN_PLACEHOLDER>>","Content-Type":"application/json"}',
+  '{"Content-type":"application/json","Authorization":"Bearer [[TOKEN_PLACEHOLDER]]","Content-Type":"application/json"}',
   '{}',
   '5000'
 );
@@ -555,8 +590,30 @@ CREATE POLICY "Allow authenticated select staging" ON storage.objects FOR SELECT
 CREATE POLICY "Allow authenticated insert staging" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'staging');
 CREATE POLICY "Allow authenticated update staging" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'staging');
 CREATE POLICY "Allow authenticated delete staging" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'staging');
-`;
+    </script>
 
+    <script>
+        // ==========================================
+        // 0. 頁面初始化 (時鐘功能)
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            setInterval(() => {
+                const el = document.getElementById('header-clock');
+                if(el) el.textContent = new Date().toLocaleTimeString('zh-TW', { hour12: false });
+            }, 1000);
+            
+            const dateEl = document.getElementById('header-date');
+            if(dateEl) {
+                const now = new Date();
+                const days = ['日', '一', '二', '三', '四', '五', '六'];
+                const formattedDate = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}(${days[now.getDay()]})`;
+                dateEl.innerHTML = `<i class="far fa-calendar-alt me-1"></i>今日是 ${formattedDate}`;
+            }
+        });
+
+        // ==========================================
+        // 1. 資料庫 SQL 生成邏輯
+        // ==========================================
         function generateSQL() {
             const projectUrlInput = document.getElementById('db-project-url').value.trim();
             const serviceKey = document.getElementById('db-service-key').value.trim();
@@ -568,13 +625,17 @@ CREATE POLICY "Allow authenticated delete staging" ON storage.objects FOR DELETE
                 return;
             }
 
+            // 清理網址
             let cleanUrl = projectUrlInput.replace(/\/functions\/v1\/verify-storage\/?$/, '');
             if (cleanUrl.endsWith('/')) cleanUrl = cleanUrl.slice(0, -1);
             const fullUrl = `${cleanUrl}/functions/v1/verify-storage`;
 
-            let finalSQL = SQL_TEMPLATE.replace('<<URL_PLACEHOLDER>>', fullUrl)
-                                       .replace('<<TOKEN_PLACEHOLDER>>', serviceKey);
+            // 讀取模板並替換
+            const tpl = document.getElementById('tpl-sql').textContent;
+            let finalSQL = tpl.replace('[[URL_PLACEHOLDER]]', fullUrl)
+                              .replace('[[TOKEN_PLACEHOLDER]]', serviceKey);
 
+            // 下載
             const blob = new Blob([finalSQL], { type: 'text/plain' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
@@ -586,17 +647,23 @@ CREATE POLICY "Allow authenticated delete staging" ON storage.objects FOR DELETE
         }
 
         // ==========================================
-        // 2. Edge Functions 打包邏輯 (完整無刪減版)
+        // 2. Edge Functions 打包邏輯 (動態注入)
         // ==========================================
         async function generateEdgeZip() {
-            const sender = document.getElementById('ef-sender').value.trim();
-            const login = document.getElementById('ef-login').value.trim();
-            const reset = document.getElementById('ef-reset').value.trim();
-            const act = document.getElementById('ef-act').value.trim();
+            // 取得所有欄位值
+            const senderEmail = document.getElementById('ef-sender-email').value.trim();
+            const senderName = document.getElementById('ef-sender-name').value.trim();
+            const resendKey = document.getElementById('ef-resend-key').value.trim();
+            const sbUrl = document.getElementById('ef-sb-url').value.trim();
+            const sbKey = document.getElementById('ef-sb-key').value.trim();
+            const loginUrl = document.getElementById('ef-login').value.trim();
+            const resetUrl = document.getElementById('ef-reset').value.trim();
+            const actUrl = document.getElementById('ef-act').value.trim();
+            
             const statusDiv = document.getElementById('status-ef');
 
-            if (!sender || !login || !reset || !act) {
-                statusDiv.innerText = "❌ 請完整填寫所有欄位";
+            if (!senderEmail || !loginUrl || !resetUrl || !actUrl) {
+                statusDiv.innerText = "❌ 請完整填寫所有欄位 (金鑰可選)";
                 statusDiv.className = "status-msg status-error";
                 return;
             }
@@ -606,14 +673,20 @@ CREATE POLICY "Allow authenticated delete staging" ON storage.objects FOR DELETE
 
             const zip = new JSZip();
 
-            // ✅ 以下皆為 100% 原始碼完整保留，並妥善處理字串跳脫，以動態注入網址與信箱
-            const files = {
-                "reset-password": `import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+            // 定義 Edge Functions 原始碼模板 (100% 原始邏輯)
+            // 使用變數注入：如果 UI 有填寫金鑰，則優先使用填寫值；否則保留 Deno.env.get()
+            
+            const val_resend = resendKey ? `"${resendKey}"` : `""`; 
+            const val_sb_url = sbUrl ? `"${sbUrl}"` : `""`;
+            const val_sb_key = sbKey ? `"${sbKey}"` : `""`;
+
+            // 1. reset-password
+            const ts_reset = `import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const RESEND_API_KEY = ${val_resend} || Deno.env.get("RESEND_API_KEY");
+const SUPABASE_URL = ${val_sb_url} || Deno.env.get("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = ${val_sb_key} || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 if (!RESEND_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error("Missing required environment variables");
@@ -643,22 +716,19 @@ serve(async (req) => {
   }
 
   try {
-    const { email } = (await req.json()) as ResetRequest; // 這裡不拿 redirectTo 了，反正也不用
+    const { email } = (await req.json()) as ResetRequest;
 
     if (!email) {
       throw new Error("Email is required");
     }
 
-    // ✅ 強制指定正確網址，無視前端傳來的參數 (替換為生成器輸入網址)
-    const finalRedirectUrl = "${reset}";
-
+    const finalRedirectUrl = "${resetUrl}";
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: "recovery",
       email,
       options: {
-        // ✅ 這裡只放變數，不接受前端參數
         redirectTo: finalRedirectUrl,
       },
     });
@@ -675,7 +745,7 @@ serve(async (req) => {
         Authorization: \`Bearer \${RESEND_API_KEY}\`,
       },
       body: JSON.stringify({
-        from: "OHACSS 職業健康評鑑與合規支援系統通知 <${sender}>",
+        from: "${senderName} <${senderEmail}>",
         to: email,
         subject,
         html,
@@ -729,258 +799,18 @@ function getEmailContent(email: string, actionUrl: string) {
 </body>
 </html>\`;
   return { subject, html };
-}`,
+}`;
 
-                "send-email": `import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+            // 2. send-email
+            const ts_send_email = `import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-/* =====================================================
- * 1. 設定 API Key (從 Supabase Secrets 環境變數讀取)
- * ===================================================== */
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const RESEND_API_KEY = ${val_resend} || Deno.env.get("RESEND_API_KEY");
 
-/* =====================================================
- * 2. 型別定義
- * ===================================================== */
 interface MailRequest {
   type: "activate";
   email: string;
   data: any;
 }
-
-/* =====================================================
- * 3. CORS 設定
- * ===================================================== */
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
-
-/* =====================================================
- * 4. Server 主程式
- * ===================================================== */
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
-  try {
-    const { type, email, data } = (await req.json()) as MailRequest;
-
-    // 取得對應模板內容
-    const { subject, html } = getEmailContent(type, data);
-
-    // 呼叫 Resend API
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: \`Bearer \${RESEND_API_KEY}\`,
-      },
-      body: JSON.stringify({
-        from: "OHACSS 管理中心 <${sender}>",
-        to: email,
-        subject,
-        html,
-      }),
-    });
-
-    const result = await res.json();
-
-    if (!res.ok) {
-      throw new Error(JSON.stringify(result));
-    }
-
-    return new Response(JSON.stringify(result), {
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "application/json",
-      },
-    });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 400,
-      headers: {
-        ...corsHeaders,
-        "Content-Type": "application/json",
-      },
-    });
-  }
-});
-
-/* =====================================================
- * 5. 郵件模板工廠 (Template Factory)
- * ===================================================== */
-function getEmailContent(type: string, data: any) {
-  const LOGIN_URL = "${login}";
-
-  switch (type) {
-    case "activate":
-      return {
-        subject: "【OHACSS】帳號開通通知",
-        html: \`
-        <div style="font-family:'Microsoft JhengHei',sans-serif;max-width:600px;margin:0 auto;padding:20px;border:1px solid #e0e0e0;border-radius:8px;">
-          <h2 style="color:#0dcaf0;border-bottom:2px solid #0dcaf0;padding-bottom:10px;">
-            歡迎加入 OHCASS 職業健康評鑑與合規支援系統
-          </h2>
-          <p style="font-size:16px;color:#333;">
-            Hi <strong>\${data.name}</strong>,
-          </p>
-          <p style="color:#555;">您的管理員已為您開通系統權限。</p>
-          <div style="background:#f8f9fa;padding:20px;border-radius:6px;margin:20px 0;border-left:5px solid #0dcaf0;">
-            <p><strong>登入帳號：</strong>\${data.email}</p>
-            <p>
-              <strong>預設密碼：</strong>
-              <span style="font-family:monospace;background:#e9ecef;padding:2px 6px;border-radius:4px;font-weight:bold;color:#d63384;">
-                12345678
-              </span>
-            </p>
-          </div>
-          <div style="text-align:center;margin:30px 0;">
-            <a href="\${LOGIN_URL}"
-               style="background:#0dcaf0;color:white;padding:12px 24px;
-                      text-decoration:none;border-radius:4px;font-weight:bold;">
-              立即登入系統
-            </a>
-          </div>
-          <p style="color:#333;">
-            請於登入後 <strong>立即更改密碼</strong> 以確保帳號安全。
-          </p>
-          <p style="font-size:12px;color:#999;text-align:center;">
-            此為系統自動發送信件，請勿直接回覆。
-          </p>
-        </div>
-        \`,
-      };
-
-    default:
-      throw new Error(\`不支援的郵件類型: \${type}\`);
-  }
-}`,
-
-                "send-evaluation-revision": `import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
-
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
-  try {
-    const { id } = await req.json();
-    if (!id) {
-      return new Response(JSON.stringify({ error: "Missing id" }), {
-        status: 400,
-        headers: corsHeaders,
-      });
-    }
-
-    // 查 evidence (修正：增加讀取 case_number)
-    const dbRes = await fetch(
-      \`\${SUPABASE_URL}/rest/v1/evidence?id=eq.\${id}&select=case_number,evaluation_reviews,medical_staff(name,email),workplaces(companies(name))\`,
-      {
-        headers: {
-          apikey: SERVICE_ROLE_KEY!,
-          Authorization: \`Bearer \${SERVICE_ROLE_KEY}\`,
-        },
-      }
-    );
-
-    const [data] = await dbRes.json();
-    if (!data) throw new Error("Evidence not found");
-
-    const to = data.medical_staff.email;
-    const companyName = data.workplaces.companies.name;
-    const consultantName = data.medical_staff.name;
-    const caseNumber = data.case_number || "無案號";
-    const reviews = data.evaluation_reviews || [];
-
-    // 格式化評鑑審查紀錄 (理由)
-    const reviewHtml =
-      reviews.length > 0
-        ? \`<ul style="background:#fff0f0; padding:15px 20px; border-left:4px solid #c0392b; color:#555;">\${reviews
-            .map((r: any) => \`<li><strong style="color:#333;">\${r.date || "未記錄日期"}</strong>：\${r.note}</li>\`)
-            .join("")}</ul>\`
-        : "<p>目前尚無評鑑審查紀錄。</p>";
-
-    const html = \`
-      <div style="font-family:'Microsoft JhengHei',sans-serif;max-width:600px;margin:0 auto;color:#333;">
-        <h2 style="color:#202124; border-bottom:2px solid #ffc107; padding-bottom:10px;">評鑑補件通知</h2>
-        <p>親愛的 <strong>\${consultantName}</strong> 顧問：</p>
-        <p>您負責的「<strong>\${companyName}</strong>」案件經評鑑審查後，需要進行補正。</p>
-        
-        <div style="background:#f8f9fa; padding:15px; border-radius:6px; margin:20px 0;">
-            <p style="margin:0; font-size:14px; color:#666;">請使用以下案號進行作業：</p>
-            <h3 style="margin:5px 0; color:#0d6efd; letter-spacing:1px;">\${caseNumber}</h3>
-        </div>
-
-        <p><strong>審查意見與需補正事項：</strong></p>
-        \${reviewHtml}
-        
-        <hr style="border:0; border-top:1px dashed #ddd; margin:20px 0;">
-
-        <p style="font-weight:bold;">請依下列步驟完成補件：</p>
-        <ol style="line-height:1.6;">
-            <li>複製上方案號：<span style="background:#eee; padding:2px 6px;">\${caseNumber}</span></li>
-            <li>點擊下方連結進入 <strong>評鑑改善專區 (Act)</strong></li>
-            <li>輸入案號調閱案件，並上傳改善說明與佐證附件</li>
-        </ol>
-
-        <div style="text-align:center; margin:30px 0;">
-            <a href="${act}" 
-               style="background-color:#dc3545; color:white; padding:12px 25px; text-decoration:none; border-radius:5px; font-weight:bold; display:inline-block;">
-               前往評鑑改善專區
-            </a>
-        </div>
-
-        <p style="font-size:12px;color:#999; margin-top:40px; border-top:1px solid #eee; padding-top:10px;">
-            此為系統自動發送通知，請勿直接回覆。<br>
-            OHACSS 職業健康評鑑與合規支援系統 | WesmartAI
-        </p>
-      </div>
-    \`;
-
-    const mailRes = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: \`Bearer \${RESEND_API_KEY}\`,
-      },
-      body: JSON.stringify({
-        /* ✅ 嚴格保留設定：使用已驗證的正式網域 (由生成器替換) */
-        from: "OHCASS <${sender}>",
-        to,
-        subject: \`【OHCASS】職業健康評鑑與合規支援系統評鑑補件通知 (\${caseNumber})：\${companyName}\`,
-        html,
-      }),
-    });
-
-    const result = await mailRes.json();
-
-    return new Response(JSON.stringify(result), {
-      status: mailRes.ok ? 200 : 400,
-      headers: corsHeaders,
-    });
-  } catch (err: any) {
-    return new Response(
-      JSON.stringify({ error: err.message }),
-      { status: 500, headers: corsHeaders }
-    );
-  }
-});`,
-
-                "send-reminder": `import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -993,321 +823,312 @@ serve(async (req) => {
   }
 
   try {
+    const { type, email, data } = (await req.json()) as MailRequest;
+    const { subject, html } = getEmailContent(type, data);
+
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: \`Bearer \${RESEND_API_KEY}\`,
+      },
+      body: JSON.stringify({
+        from: "${senderName} <${senderEmail}>",
+        to: email,
+        subject,
+        html,
+      }),
+    });
+
+    const result = await res.json();
+    if (!res.ok) throw new Error(JSON.stringify(result));
+
+    return new Response(JSON.stringify(result), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  } catch (error: any) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  }
+});
+
+function getEmailContent(type: string, data: any) {
+  const LOGIN_URL = "${loginUrl}";
+
+  switch (type) {
+    case "activate":
+      return {
+        subject: "【OHACSS】帳號開通通知",
+        html: \`
+        <div style="font-family:'Microsoft JhengHei',sans-serif;max-width:600px;margin:0 auto;padding:20px;border:1px solid #e0e0e0;border-radius:8px;">
+          <h2 style="color:#0dcaf0;border-bottom:2px solid #0dcaf0;padding-bottom:10px;">
+            歡迎加入 OHCASS 職業健康評鑑與合規支援系統
+          </h2>
+          <p style="font-size:16px;color:#333;">Hi <strong>\${data.name}</strong>,</p>
+          <p style="color:#555;">您的管理員已為您開通系統權限。</p>
+          <div style="background:#f8f9fa;padding:20px;border-radius:6px;margin:20px 0;border-left:5px solid #0dcaf0;">
+            <p><strong>登入帳號：</strong>\${data.email}</p>
+            <p><strong>預設密碼：</strong><span style="font-family:monospace;background:#e9ecef;padding:2px 6px;border-radius:4px;font-weight:bold;color:#d63384;">12345678</span></p>
+          </div>
+          <div style="text-align:center;margin:30px 0;">
+            <a href="\${LOGIN_URL}" style="background:#0dcaf0;color:white;padding:12px 24px;text-decoration:none;border-radius:4px;font-weight:bold;">立即登入系統</a>
+          </div>
+          <p style="color:#333;">請於登入後 <strong>立即更改密碼</strong> 以確保帳號安全。</p>
+        </div>
+        \`,
+      };
+    default:
+      throw new Error(\`不支援的郵件類型: \${type}\`);
+  }
+}`;
+
+            // 3. send-evaluation-revision
+            const ts_eval = `import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const RESEND_API_KEY = ${val_resend} || Deno.env.get("RESEND_API_KEY");
+const SUPABASE_URL = ${val_sb_url} || Deno.env.get("SUPABASE_URL");
+const SERVICE_ROLE_KEY = ${val_sb_key} || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  try {
+    const { id } = await req.json();
+    if (!id) return new Response(JSON.stringify({ error: "Missing id" }), { status: 400, headers: corsHeaders });
+
+    const dbRes = await fetch(
+      \`\${SUPABASE_URL}/rest/v1/evidence?id=eq.\${id}&select=case_number,evaluation_reviews,medical_staff(name,email),workplaces(companies(name))\`,
+      { headers: { apikey: SERVICE_ROLE_KEY!, Authorization: \`Bearer \${SERVICE_ROLE_KEY}\` } }
+    );
+
+    const [data] = await dbRes.json();
+    if (!data) throw new Error("Evidence not found");
+
+    const to = data.medical_staff.email;
+    const companyName = data.workplaces.companies.name;
+    const consultantName = data.medical_staff.name;
+    const caseNumber = data.case_number || "無案號";
+    const reviews = data.evaluation_reviews || [];
+
+    const reviewHtml = reviews.length > 0
+        ? \`<ul style="background:#fff0f0; padding:15px 20px; border-left:4px solid #c0392b; color:#555;">\${reviews.map((r: any) => \`<li><strong style="color:#333;">\${r.date || "未記錄日期"}</strong>：\${r.note}</li>\`).join("")}</ul>\`
+        : "<p>目前尚無評鑑審查紀錄。</p>";
+
+    const html = \`
+      <div style="font-family:'Microsoft JhengHei',sans-serif;max-width:600px;margin:0 auto;color:#333;">
+        <h2 style="color:#202124; border-bottom:2px solid #ffc107; padding-bottom:10px;">評鑑補件通知</h2>
+        <p>親愛的 <strong>\${consultantName}</strong> 顧問：</p>
+        <p>您負責的「<strong>\${companyName}</strong>」案件經評鑑審查後，需要進行補正。</p>
+        <div style="background:#f8f9fa; padding:15px; border-radius:6px; margin:20px 0;">
+            <p style="margin:0; font-size:14px; color:#666;">請使用以下案號進行作業：</p>
+            <h3 style="margin:5px 0; color:#0d6efd; letter-spacing:1px;">\${caseNumber}</h3>
+        </div>
+        <p><strong>審查意見與需補正事項：</strong></p>
+        \${reviewHtml}
+        <hr style="border:0; border-top:1px dashed #ddd; margin:20px 0;">
+        <ol style="line-height:1.6;">
+            <li>複製上方案號：<span style="background:#eee; padding:2px 6px;">\${caseNumber}</span></li>
+            <li>點擊下方連結進入 <strong>評鑑改善專區 (Act)</strong></li>
+        </ol>
+        <div style="text-align:center; margin:30px 0;">
+            <a href="${actUrl}" style="background-color:#dc3545; color:white; padding:12px 25px; text-decoration:none; border-radius:5px; font-weight:bold; display:inline-block;">前往評鑑改善專區</a>
+        </div>
+      </div>
+    \`;
+
+    const mailRes = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: \`Bearer \${RESEND_API_KEY}\` },
+      body: JSON.stringify({
+        from: "${senderName} <${senderEmail}>",
+        to,
+        subject: \`【OHCASS】職業健康評鑑與合規支援系統評鑑補件通知 (\${caseNumber})：\${companyName}\`,
+        html,
+      }),
+    });
+
+    const result = await mailRes.json();
+    return new Response(JSON.stringify(result), { status: mailRes.ok ? 200 : 400, headers: corsHeaders });
+  } catch (err: any) {
+    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
+  }
+});`;
+
+            // 4. send-reminder
+            const ts_reminder = `import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const RESEND_API_KEY = ${val_resend} || Deno.env.get("RESEND_API_KEY");
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  try {
     const { email, consultantName, companyName } = await req.json();
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: \`Bearer \${RESEND_API_KEY}\`,
-      },
+      headers: { "Content-Type": "application/json", Authorization: \`Bearer \${RESEND_API_KEY}\` },
       body: JSON.stringify({
-        /* ✅ 唯一修正點：改用已驗證網域 */
-        from: "OHSMS 系統通知 <${sender}>",
+        from: "${senderName} <${senderEmail}>",
         to: email,
         subject: \`【OHCASS】職業健康評鑑與合規支援系統催收通知：尚未結案提醒 (\${companyName})\`,
         html: \`
         <div style="font-family:'Microsoft JhengHei',sans-serif;max-width:600px;margin:0 auto;padding:20px;border:1px solid #e0e0e0;border-radius:8px;">
-          <h2 style="color:#ffc107;border-bottom:2px solid #ffc107;padding-bottom:10px;">
-            案件催收通知
-          </h2>
+          <h2 style="color:#ffc107;border-bottom:2px solid #ffc107;padding-bottom:10px;">案件催收通知</h2>
           <p style="font-size:16px;color:#333;">親愛的 <strong>\${consultantName}</strong> 顧問：</p>
-          <p style="color:#555;">
-            關於您負責的「<strong>\${companyName}</strong>」服務紀錄，
-            目前仍為 <span style="color:#dc3545;font-weight:bold;">待審查 (暫存)</span> 狀態。
-          </p>
-
-          <div style="background:#f8f9fa;padding:15px;border-radius:6px;margin:20px 0;">
-            請盡速登入 OHACSS 職業健康評鑑與合規支援系統確認並補齊所需文件，以利系統結案程序，確保資料合規。
-          </div>
-
-          <a href="${login}"
-             style="display:inline-block;background:#198754;color:white;padding:10px 20px;text-decoration:none;border-radius:4px;margin-top:10px;">
-            立即登入處理
-          </a>
+          <p style="color:#555;">關於您負責的「<strong>\${companyName}</strong>」服務紀錄，目前仍為 <span style="color:#dc3545;font-weight:bold;">待審查 (暫存)</span> 狀態。</p>
+          <div style="background:#f8f9fa;padding:15px;border-radius:6px;margin:20px 0;">請盡速登入 OHACSS 確認並補齊文件。</div>
+          <a href="${loginUrl}" style="display:inline-block;background:#198754;color:white;padding:10px 20px;text-decoration:none;border-radius:4px;">立即登入處理</a>
         </div>
         \`,
       }),
     });
 
-    if (!res.ok) {
-      throw new Error(JSON.stringify(await res.json()));
-    }
+    if (!res.ok) throw new Error(JSON.stringify(await res.json()));
 
-    return new Response(
-      JSON.stringify({ success: true }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (error: any) {
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 400, headers: corsHeaders }
-    );
+    return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: corsHeaders });
   }
-});`,
+});`;
 
-                "send-review": `import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+            // 5. send-review
+            const ts_review = `import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+const RESEND_API_KEY = ${val_resend} || Deno.env.get("RESEND_API_KEY");
+const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
     const body = await req.json();
+    const { email, consultantName, companyName, reason, deadline } = body;
+    const caseNo = body.caseNo || body.case_no || body.caseId || body.case_id || body.recordNo || body.record_no;
 
-    const email = body.email;
-    const consultantName = body.consultantName;
-    const companyName = body.companyName;
-    const reason = body.reason;
-    const deadline = body.deadline;
-
-    // ✅ 案號多來源相容（避免前端未同步）
-    const caseNo =
-      body.caseNo ||
-      body.case_no ||
-      body.caseId ||
-      body.case_id ||
-      body.recordNo ||
-      body.record_no;
-
-    if (!email || !caseNo) {
-      return new Response(
-        JSON.stringify({
-          error: "缺少必要參數",
-          receivedKeys: Object.keys(body),
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
+    if (!email || !caseNo) return new Response(JSON.stringify({ error: "缺少必要參數" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: \`Bearer \${RESEND_API_KEY}\`,
-      },
+      headers: { "Content-Type": "application/json", Authorization: \`Bearer \${RESEND_API_KEY}\` },
       body: JSON.stringify({
-        /* ✅ 唯一修正點：改用你已驗證的正式寄信網域 */
-        from: "OHACSS 職業健康評鑑與合規支援系統通知 <${sender}>",
+        from: "${senderName} <${senderEmail}>",
         to: email,
         subject: \`【OHCASS】職業健康評鑑與合規支援系統案件補正通知｜案號 \${caseNo}\`,
         html: \`
         <div style="font-family:'Microsoft JhengHei',sans-serif;max-width:600px;margin:0 auto;padding:20px;border:1px solid #e0e0e0;border-radius:8px;">
-          <h2 style="color:#dc3545;border-bottom:2px solid #dc3545;padding-bottom:10px;">
-            案件審查通知（需補件）
-          </h2>
-
-          <p style="font-size:15px;color:#555;">
-            案件案號：<strong>\${caseNo}</strong>
-          </p>
-
-          <p style="font-size:16px;color:#333;">
-            親愛的 <strong>\${consultantName}</strong> 顧問：
-          </p>
-
-          <p style="color:#555;">
-            您為「<strong>\${companyName}</strong>」所提交之服務案件，經系統審查後需進行補正。
-          </p>
-
-          <div style="background:#e7f1ff;padding:15px;border-left:4px solid #0d6efd;margin:20px 0;">
-            <strong style="color:#0d6efd;font-size:16px;">💡 快速補件指南：</strong><br>
-            <span style="color:#333;">請登入 OHCASS職業健康評鑑與合規支援系統 系統，在「搜尋條件」輸入以下案件編號，即可快速找回此案進行補件：</span>
-            <div style="margin-top:10px;padding:10px;background:#fff;border:1px dashed #0d6efd;text-align:center;font-size:20px;font-weight:bold;color:#dc3545;letter-spacing:1px;">
-              \${caseNo}
-            </div>
-          </div>
-
+          <h2 style="color:#dc3545;border-bottom:2px solid #dc3545;padding-bottom:10px;">案件審查通知（需補件）</h2>
+          <p style="font-size:15px;color:#555;">案件案號：<strong>\${caseNo}</strong></p>
+          <p style="font-size:16px;color:#333;">親愛的 <strong>\${consultantName}</strong> 顧問：</p>
+          <p style="color:#555;">您為「<strong>\${companyName}</strong>」所提交之服務案件，經系統審查後需進行補正。</p>
           <div style="background:#fff3cd;padding:15px;border-left:4px solid #ffc107;margin:20px 0;">
-            <strong>【需補正原因 / 建議】</strong><br>
-            <span style="color:#664d03;white-space:pre-wrap;">\${reason}</span>
+            <strong>【需補正原因 / 建議】</strong><br><span style="color:#664d03;white-space:pre-wrap;">\${reason}</span>
           </div>
-
-          <p style="color:#dc3545;font-weight:bold;">
-            ※ 請於 \${deadline} 日內登入 OHACSS 職業健康評鑑與合規支援系統完成補正。
-          </p>
-
-          <a href="${login}"
-             style="display:inline-block;background:#202124;color:white;padding:10px 20px;text-decoration:none;border-radius:4px;margin-top:10px;">
-            登入系統處理
-          </a>
+          <p style="color:#dc3545;font-weight:bold;">※ 請於 \${deadline} 日內登入系統完成補正。</p>
+          <a href="${loginUrl}" style="display:inline-block;background:#202124;color:white;padding:10px 20px;text-decoration:none;border-radius:4px;">登入系統處理</a>
         </div>
         \`,
       }),
     });
 
-    if (!res.ok) {
-      throw new Error(JSON.stringify(await res.json()));
-    }
+    if (!res.ok) throw new Error(JSON.stringify(await res.json()));
 
-    return new Response(
-      JSON.stringify({ success: true, caseNo }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ success: true, caseNo }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err: any) {
-    return new Response(
-      JSON.stringify({ error: err.message }),
-      { status: 400, headers: corsHeaders }
-    );
+    return new Response(JSON.stringify({ error: err.message }), { status: 400, headers: corsHeaders });
   }
-});`,
+});`;
 
-                "verify-storage": `// ====================================================================
-// Edge Function: verify-storage
-// 用途：檢查 Service Record 的附件是否真的存在於 Storage，且包含主紀錄表
-// ====================================================================
+            // 6. verify-storage
+            const ts_verify = `import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-// 設定 CORS headers (允許前端直接呼叫，如果需要的話)
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
 Deno.serve(async (req) => {
-  // 1. 處理 CORS Preflight Request
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    // 2. 初始化 Supabase Client (使用 Service Role Key 以獲得最高權限)
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      ${val_sb_url} || Deno.env.get('SUPABASE_URL') ?? '',
+      ${val_sb_key} || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // 3. 解析請求 (預期收到 record_id)
     const { record_id } = await req.json()
+    if (!record_id) throw new Error('缺少 record_id 參數')
 
-    if (!record_id) {
-      throw new Error('缺少 record_id 參數')
-    }
-
-    // 4. 從資料庫撈取該筆紀錄的附件資訊
     const { data: record, error: dbError } = await supabase
-      .from('service_records')
-      .select('attachment_files, workplace_id')
-      .eq('id', record_id)
-      .single()
+      .from('service_records').select('attachment_files, workplace_id').eq('id', record_id).single()
 
-    if (dbError || !record) {
-      throw new Error(\`找不到紀錄: \${dbError?.message}\`)
-    }
+    if (dbError || !record) throw new Error(\`找不到紀錄: \${dbError?.message}\`)
 
-    // 5. 解析附件 JSON
     let files = []
     if (record.attachment_files) {
-      files = typeof record.attachment_files === 'string' 
-        ? JSON.parse(record.attachment_files) 
-        : record.attachment_files
+      files = typeof record.attachment_files === 'string' ? JSON.parse(record.attachment_files) : record.attachment_files
     }
 
-    // 若無附件，直接判定為不合格
     if (!Array.isArray(files) || files.length === 0) {
       await updateStatus(supabase, record_id, false)
-      return new Response(JSON.stringify({ verified: false, reason: '無附件' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      return new Response(JSON.stringify({ verified: false, reason: '無附件' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    // 6. 開始驗證邏輯
     let allFilesExist = true
     let hasMainRecord = false
-    const bucketName = 'documents' // 依據您的 PDF 設定
+    const bucketName = 'documents' 
 
     for (const file of files) {
       const fileName = (file.name || '').toLowerCase()
-      const filePath = file.path // 必須確認您的 JSON 裡有 path 欄位
+      const filePath = file.path 
 
-      // (A) 檢查是否為主紀錄表 (關鍵字檢查)
       if (fileName.includes('紀錄表') || fileName.includes('訪視') || fileName.includes('checklist')) {
         hasMainRecord = true
       }
 
-      // (B) 檢查 Storage 實體檔案是否存在
       if (filePath) {
-        // 為了效能，我們只檢查 Metadata 不下載檔案
-        // 這裡需要解析路徑，通常 path 是 "folder/filename.pdf"
-        // 我們使用 Storage 的 list 方法來確認檔案是否在該路徑下
-        
-        // 簡易驗證法：嘗試取得 Signed URL (如果檔案不存在通常不會報錯，但無法下載)
-        // 嚴格驗證法：List Bucket
-        
-        // 這裡我們假設 file.path 是完整的儲存路徑 (e.g., "company_A/2024/report.pdf")
         const folder = filePath.substring(0, filePath.lastIndexOf('/'))
         const targetFile = filePath.substring(filePath.lastIndexOf('/') + 1)
         
-        const { data: listData, error: storageError } = await supabase
-          .storage
-          .from(bucketName)
-          .list(folder, {
-            search: targetFile // 搜尋該檔名
-          })
-
-        // 如果搜尋結果是空的，或者找不到完全符合的檔名
+        const { data: listData } = await supabase.storage.from(bucketName).list(folder, { search: targetFile })
         const found = listData && listData.some(f => f.name === targetFile)
         
-        if (!found) {
-            console.log(\`Missing file: \${filePath}\`)
-            allFilesExist = false
-            break // 只要缺一個就失敗
-        }
+        if (!found) { allFilesExist = false; break; }
       } else {
-          // 如果 JSON 裡沒有 path 資訊，無法驗證
           allFilesExist = false
       }
     }
 
-    // 7. 最終判定：必須所有檔案都在 Storage + 包含主紀錄表
     const isVerified = allFilesExist && hasMainRecord
-
-    // 8. 寫回資料庫
     await updateStatus(supabase, record_id, isVerified)
 
-    return new Response(
-      JSON.stringify({ 
-        verified: isVerified, 
-        details: { hasMainRecord, allFilesExist, fileCount: files.length } 
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return new Response(JSON.stringify({ verified: isVerified, details: { hasMainRecord, allFilesExist, fileCount: files.length } }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
   } catch (err: any) {
-    return new Response(
-      JSON.stringify({ error: err.message }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return new Response(JSON.stringify({ error: err.message }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 })
 
-// 輔助函式：更新資料庫狀態
 async function updateStatus(supabase: any, id: string, status: boolean) {
-  await supabase.from('service_records').update({ 
-    storage_verified: status,
-    last_verification_at: new Date().toISOString()
-  }).eq('id', id)
-}`
-            };
+  await supabase.from('service_records').update({ storage_verified: status, last_verification_at: new Date().toISOString() }).eq('id', id)
+}`;
 
-            for (const [name, content] of Object.entries(files)) {
-                zip.file(`supabase/functions/${name}/index.ts`, content);
-            }
+            // 將檔案加入 ZIP
+            zip.file("supabase/functions/reset-password/index.ts", ts_reset);
+            zip.file("supabase/functions/send-email/index.ts", ts_send_email);
+            zip.file("supabase/functions/send-evaluation-revision/index.ts", ts_eval);
+            zip.file("supabase/functions/send-reminder/index.ts", ts_reminder);
+            zip.file("supabase/functions/send-review/index.ts", ts_review);
+            zip.file("supabase/functions/verify-storage/index.ts", ts_verify);
 
+            // 下載
             const blob = await zip.generateAsync({type:"blob"});
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
@@ -1319,20 +1140,24 @@ async function updateStatus(supabase: any, id: string, status: boolean) {
         }
 
         // ==========================================
-        // 3. Config.js 產生邏輯
+        // 3. Config.js 產生邏輯 (補齊品牌參數)
         // ==========================================
         function generateConfig() {
             const url = document.getElementById('cfg-url').value.trim();
             const anonKey = document.getElementById('cfg-anon-key').value.trim();
+            const appName = document.getElementById('cfg-app-name').value.trim();
+            const companyName = document.getElementById('cfg-company-name').value.trim();
+            const taxId = document.getElementById('cfg-tax-id').value.trim();
+            const slogan = document.getElementById('cfg-slogan').value.trim();
+            
             const statusDiv = document.getElementById('status-cfg');
 
             if (!url || !anonKey) {
-                statusDiv.innerText = "❌ 請完整填寫網址與 Anon Key";
+                statusDiv.innerText = "❌ 請填寫必要的 URL 與 Anon Key";
                 statusDiv.className = "status-msg status-error";
                 return;
             }
 
-            // 清理網址斜線
             const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
 
             const configContent = `// config.js
@@ -1348,10 +1173,10 @@ const AppConfig = {
 
     // 2. 系統品牌資訊
     System: {
-        APP_NAME: 'OHACSS 職業健康評鑑與合規支援系統',
-        COMPANY_NAME: '可信智慧整合有限公司',
-        TAX_ID: '42917004',
-        SLOGAN: 'WesmartAI , Making Trust Transparent.'
+        APP_NAME: '${appName}',
+        COMPANY_NAME: '${companyName}',
+        TAX_ID: '${taxId}',
+        SLOGAN: '${slogan}'
     },
 
     // 3. 核心頁面路徑對照 (相對路徑即可)
