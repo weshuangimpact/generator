@@ -3,50 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OHACSS 系統部署生成器</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>系統部署生成器 | OHACSS</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     
     <style>
+        /* =========================================
+           1. 全域變數與基礎設定 (參考 style.css)
+           ========================================= */
         :root {
             --brand-dark: #202124;
-            --brand-light: #ffffff;
-            --brand-gray: #f8f9fa;
-            --border-color: #e0e0e0;
-            --text-main: #333333;
-            --text-sub: #666666;
+            --brand-bg: #f8f9fa; /* 微調背景色以區隔卡片 */
+            --card-border: #e0e0e0;
+            --main-font: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
         }
 
         body {
-            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            font-family: var(--main-font);
+            background-color: var(--brand-bg);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
             margin: 0;
-            padding: 0;
-            background-color: var(--brand-gray);
-            color: var(--text-main);
-            height: 100vh;
+        }
+
+        /* =========================================
+           2. Header (Navbar) 樣式
+           ========================================= */
+        .navbar {
+            background-color: var(--brand-dark) !important;
+            min-height: 85px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        /* =========================================
+           3. Footer 樣式
+           ========================================= */
+        footer {
+            background-color: var(--brand-dark) !important;
+            color: #fff;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            margin-top: auto; /* Push to bottom */
+            padding: 15px 0;
+            min-height: 85px;
+            z-index: 10;
         }
 
-        /* 主容器 */
-        .main-container {
+        /* =========================================
+           4. 主內容區 (Generator UI)
+           ========================================= */
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .generator-container {
             text-align: center;
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
-            padding: 20px;
         }
 
         h1 {
-            font-weight: 700;
             color: var(--brand-dark);
+            font-weight: 700;
             margin-bottom: 10px;
             letter-spacing: 1px;
         }
 
         p.subtitle {
-            color: var(--text-sub);
+            color: #666;
             margin-bottom: 40px;
             font-size: 1.1rem;
         }
@@ -55,18 +91,18 @@
         .action-cards {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 25px;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             .action-cards { grid-template-columns: 1fr; }
         }
 
         .card-btn {
-            background: var(--brand-light);
-            border: 1px solid var(--border-color);
+            background: #fff;
+            border: 1px solid var(--card-border);
             border-radius: 12px;
-            padding: 30px;
+            padding: 40px 30px;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
@@ -74,228 +110,209 @@
             flex-direction: column;
             align-items: center;
             gap: 15px;
+            text-decoration: none;
+            color: inherit;
         }
 
         .card-btn:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
             border-color: var(--brand-dark);
         }
 
         .card-btn i {
-            font-size: 3rem;
+            font-size: 3.5rem;
             color: var(--brand-dark);
+            margin-bottom: 10px;
         }
 
         .card-btn h3 {
             margin: 0;
+            font-weight: 700;
             color: var(--brand-dark);
         }
 
         .card-btn span {
-            font-size: 0.9rem;
-            color: var(--text-sub);
+            font-size: 0.95rem;
+            color: #666;
         }
 
-        /* Modal 樣式 */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(3px);
-        }
-
-        .modal-content {
-            background: var(--brand-light);
-            width: 90%;
-            max-width: 500px;
-            border-radius: 12px;
-            padding: 30px;
-            position: relative;
-            box-shadow: 0 20px 25px rgba(0,0,0,0.1);
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
+        /* =========================================
+           5. Modal 樣式微調 (搭配 Bootstrap)
+           ========================================= */
         .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
             border-bottom: 2px solid var(--brand-dark);
-            padding-bottom: 10px;
+            background-color: #fff;
+        }
+        
+        .modal-title {
+            color: var(--brand-dark);
+            font-weight: 700;
         }
 
-        .modal-header h2 {
-            margin: 0;
-            font-size: 1.5rem;
+        .form-label {
+            font-weight: 600;
             color: var(--brand-dark);
         }
 
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--text-sub);
-        }
-
-        .close-btn:hover { color: var(--brand-dark); }
-
-        /* 表單樣式 */
-        .form-group { margin-bottom: 15px; text-align: left; }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 1rem;
-            box-sizing: border-box;
-            transition: border 0.3s;
-        }
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--brand-dark);
-        }
-        .hint {
-            font-size: 0.8rem;
+        .form-text {
+            font-size: 0.85em;
             color: #888;
-            margin-top: 4px;
         }
 
-        .btn-submit {
-            width: 100%;
+        .btn-brand {
             background-color: var(--brand-dark);
             color: white;
             border: none;
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 1rem;
+            padding: 10px 20px;
             font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
             transition: background 0.3s;
         }
 
-        .btn-submit:hover {
+        .btn-brand:hover {
             background-color: #3a3b3e;
+            color: white;
         }
 
         .status-msg {
-            margin-top: 10px;
-            font-size: 0.9rem;
+            margin-top: 15px;
             font-weight: bold;
             text-align: center;
         }
-        .success { color: #198754; }
-        .error { color: #dc3545; }
+        .status-success { color: #198754; }
+        .status-error { color: #dc3545; }
 
     </style>
 </head>
 <body>
 
-    <div class="main-container">
-        <h1>OHACSS 系統部署生成器</h1>
-        <p class="subtitle">請選擇您要生成的重建檔案類型</p>
+    <nav class="navbar navbar-expand-lg navbar-dark px-4">
+        <div class="container-fluid d-flex justify-content-between align-items-center p-0">
+            <a class="navbar-brand d-flex align-items-center fw-bold" href="#">
+                <i class="fas fa-shield-alt me-2"></i> OHACSS 系統部署生成器
+            </a>
+            <div class="d-flex align-items-center">
+                <span class="text-white me-3 small" id="header-date"><i class="fas fa-spinner fa-spin"></i></span>
+                <span class="text-white small border-start ps-3 border-secondary" id="header-clock" style="opacity: 0.9;">--:--</span>
+            </div>
+        </div>
+    </nav>
 
-        <div class="action-cards">
-            <div class="card-btn" onclick="openModal('modal-db')">
-                <i class="fa-solid fa-database"></i>
-                <div>
-                    <h3>資料庫重建檔 (SQL)</h3>
-                    <span>Tables, RLS, Storage Buckets</span>
+    <div class="main-content">
+        <div class="generator-container">
+            <h1>系統部署檔案生成中心</h1>
+            <p class="subtitle">請選擇您要執行的重建任務類型</p>
+
+            <div class="action-cards">
+                <div class="card-btn" data-bs-toggle="modal" data-bs-target="#modal-db">
+                    <i class="fa-solid fa-database"></i>
+                    <div>
+                        <h3>資料庫重建檔 (SQL)</h3>
+                        <span>含 Tables, RLS Policies, Storage Buckets</span>
+                    </div>
+                </div>
+
+                <div class="card-btn" data-bs-toggle="modal" data-bs-target="#modal-edge">
+                    <i class="fa-solid fa-bolt"></i>
+                    <div>
+                        <h3>Edge Functions (ZIP)</h3>
+                        <span>含 6 支核心功能與環境變數配置</span>
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div class="card-btn" onclick="openModal('modal-edge')">
-                <i class="fa-solid fa-bolt"></i>
-                <div>
-                    <h3>Edge Functions (ZIP)</h3>
-                    <span>6 支核心功能打包</span>
+    <footer>
+        <div class="mb-1">可信智慧整合有限公司 42917004</div>
+        <div class="small opacity-75" style="font-family: 'Segoe UI', sans-serif; letter-spacing: 1px;">
+            WesmartAI , Making Trust Transparent.
+        </div>
+    </footer>
+
+    <div class="modal fade" id="modal-db" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">資料庫 SQL 生成設定</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start">
+                    <div class="mb-3">
+                        <label class="form-label">Supabase 專案網址 (Project URL)</label>
+                        <input type="text" class="form-control" id="db-project-url" placeholder="例: https://okvbtpyeenwmkmzkrxkk.supabase.co">
+                        <div class="form-text">用於設定 Webhook 觸發器 (自動補全 functions 路徑)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Service Role Key (Secret)</label>
+                        <input type="password" class="form-control" id="db-service-key" placeholder="eyJ...">
+                        <div class="form-text">用於觸發器權限驗證 (請至 Project Settings > API 取得)</div>
+                    </div>
+                    <div id="status-db" class="status-msg"></div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-brand w-100" onclick="generateSQL()">生成並下載 SQL</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="modal-db" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>資料庫 SQL 生成</h2>
-                <button class="close-btn" onclick="closeModal('modal-db')">&times;</button>
+    <div class="modal fade" id="modal-edge" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edge Functions 打包設定</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start">
+                    <div class="mb-3">
+                        <label class="form-label">系統寄件者信箱 (Sender Email)</label>
+                        <input type="email" class="form-control" id="ef-sender" placeholder="noreply@wesmartai.net" value="noreply@wesmartai.net">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">前端登入網址 (Login URL)</label>
+                        <input type="text" class="form-control" id="ef-login" value="https://weshuangimpact.github.io/ohsms-app/login.html">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">重設密碼網址 (Reset Password URL)</label>
+                        <input type="text" class="form-control" id="ef-reset" value="https://weshuangimpact.github.io/ohsms-app/reset-password.html">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">評鑑改善網址 (Act URL)</label>
+                        <input type="text" class="form-control" id="ef-act" value="https://weshuangimpact.github.io/ohsms-app/index5.html">
+                    </div>
+                    <div id="status-ef" class="status-msg"></div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-brand w-100" onclick="generateEdgeZip()">生成並下載 ZIP</button>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Supabase 專案網址 (Project URL)</label>
-                <input type="text" id="db-project-url" placeholder="例: https://xxx.supabase.co">
-                <div class="hint">用於設定 Webhook 觸發器 (自動補全 functions 路徑)</div>
-            </div>
-            <div class="form-group">
-                <label>Service Role Key (Secret)</label>
-                <input type="password" id="db-service-key" placeholder="eyJ...">
-                <div class="hint">用於觸發器權限驗證 (請至 Project Settings > API 取得)</div>
-            </div>
-            <button class="btn-submit" onclick="generateSQL()">生成並下載 SQL</button>
-            <div id="status-db" class="status-msg"></div>
         </div>
     </div>
 
-    <div id="modal-edge" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Edge Functions 打包</h2>
-                <button class="close-btn" onclick="closeModal('modal-edge')">&times;</button>
-            </div>
-            <div class="form-group">
-                <label>系統寄件者信箱 (Sender Email)</label>
-                <input type="email" id="ef-sender" placeholder="noreply@wesmartai.net" value="noreply@wesmartai.net">
-            </div>
-            <div class="form-group">
-                <label>前端登入網址 (Login URL)</label>
-                <input type="text" id="ef-login" placeholder="https://.../login.html" value="https://weshuangimpact.github.io/ohsms-app/login.html">
-            </div>
-            <div class="form-group">
-                <label>重設密碼網址 (Reset Password URL)</label>
-                <input type="text" id="ef-reset" placeholder="https://.../reset.html" value="https://weshuangimpact.github.io/ohsms-app/reset-password.html">
-            </div>
-            <div class="form-group">
-                <label>評鑑改善網址 (Act URL)</label>
-                <input type="text" id="ef-act" placeholder="https://.../index5.html" value="https://weshuangimpact.github.io/ohsms-app/index5.html">
-            </div>
-            <button class="btn-submit" onclick="generateEdgeZip()">生成並下載 ZIP</button>
-            <div id="status-ef" class="status-msg"></div>
-        </div>
-    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // Modal 控制
-        function openModal(id) {
-            document.getElementById(id).style.display = 'flex';
-        }
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
-        }
-        // 點擊背景關閉
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal-overlay')) {
-                event.target.style.display = 'none';
+        // ==========================================
+        // 0. 頁面初始化 (時鐘功能)
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // 時鐘邏輯
+            setInterval(() => {
+                const el = document.getElementById('header-clock');
+                if(el) el.textContent = new Date().toLocaleTimeString('zh-TW', { hour12: false });
+            }, 1000);
+            
+            const dateEl = document.getElementById('header-date');
+            if(dateEl) {
+                const now = new Date();
+                const days = ['日', '一', '二', '三', '四', '五', '六'];
+                const formattedDate = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}(${days[now.getDay()]})`;
+                dateEl.innerHTML = `<i class="far fa-calendar-alt me-1"></i>今日是 ${formattedDate}`;
             }
-        }
+        });
 
         // ==========================================
         // 1. 資料庫 SQL 生成邏輯
@@ -487,7 +504,7 @@ CREATE POLICY "Allow authenticated delete staging" ON storage.objects FOR DELETE
 
             if (!projectUrlInput || !serviceKey) {
                 statusDiv.innerText = "❌ 請完整填寫網址與 Key";
-                statusDiv.className = "status-msg error";
+                statusDiv.className = "status-msg status-error";
                 return;
             }
 
@@ -508,7 +525,7 @@ CREATE POLICY "Allow authenticated delete staging" ON storage.objects FOR DELETE
             link.click();
 
             statusDiv.innerText = "✅ SQL 檔已下載，請至 Supabase SQL Editor 執行";
-            statusDiv.className = "status-msg success";
+            statusDiv.className = "status-msg status-success";
         }
 
         // ==========================================
@@ -523,7 +540,7 @@ CREATE POLICY "Allow authenticated delete staging" ON storage.objects FOR DELETE
 
             if (!sender || !login || !reset || !act) {
                 statusDiv.innerText = "❌ 請完整填寫所有欄位";
-                statusDiv.className = "status-msg error";
+                statusDiv.className = "status-msg status-error";
                 return;
             }
 
@@ -680,7 +697,7 @@ Deno.serve(async (req) => {
             link.click();
 
             statusDiv.innerText = "✅ ZIP 檔已下載，請解壓並執行 CLI 部署";
-            statusDiv.className = "status-msg success";
+            statusDiv.className = "status-msg status-success";
         }
     </script>
 </body>
